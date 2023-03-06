@@ -490,7 +490,7 @@ def main():
             plt.savefig('figures/gridworld/epsilon_sweep_qlearning.png')
             plt.legend()
 
-    plt.show()
+    # plt.show()
 
 if __name__ == '__main__':
     main()
