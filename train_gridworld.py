@@ -3,7 +3,7 @@ from gridworld import GridWorld
 import random
 from matplotlib import pyplot as plt
 
-
+#Policy Iteration Algorithm
 class PolicyIteration:
 
     def __init__(self, env, theta = 1e-6, gamma = 0.95):
@@ -18,36 +18,6 @@ class PolicyIteration:
             'V': [],
             'iters': []
         }
-    # def policy_evaluation(self,pi):
-    #     V = np.zeros(self.env.num_states)
-    #     iters = 0
-    #     delta = np.inf
-    #     while delta > self.theta:
-    #         # V = np.zeros(num_states)
-    #         delta = 0
-    #         iters += 1
-    #         for s in range(self.env.num_states):
-    #             v = 0
-    #             for act,action_prob in enumerate(pi[s]):
-    #                 for s_new in range(self.env.num_states):
-    #                     v += self.env.p(s_new,s,act)*action_prob*(self.env.r(s,act) + self.gamma*V[s_new])
-    #             delta = max(delta, np.abs(v-V[s]))
-    #             V[s] = v
-    #     self.log['V'].append(np.mean(V))
-    #     self.log['iters'].append(iters)
-    #     return V
-    
-    # def policy_improvement(self,V,pi):
-    #     chosen_a = np.zeros(self.env.num_states, dtype=int)
-    #     best_a = np.zeros(self.env.num_states, dtype=int)
-    #     for s in range(self.env.num_states):
-    #         chosen_a[s] = np.argmax(pi[s])
-    #         pi_new = np.zeros(self.env.num_actions)
-    #         for a in range(self.env.num_actions):
-    #             for s_new in range(self.env.num_states):
-    #                 pi_new[a] += self.env.p(s_new,s,a)*(self.env.r(s,a) + self.gamma*V[s_new])
-    #         best_a[s] = np.argmax(pi_new)
-    #         return best_a, chosen_a
 
     def policy_iteration(self,verbose = True, plots = True):
         V = np.zeros(self.env.num_states)
@@ -112,10 +82,11 @@ class PolicyIteration:
                     plt.xlabel("Number of Iterations")
                     plt.ylabel("Mean of Value Function")
                     plt.title("Learning curve for number of iterations: Policy Iteration")
-                    plt.savefig('figures/gridworld/trajectories_PI.png')
+                    plt.savefig('figures/gridworld/learning_curve_PI.png')
                 return V, pi, self.log
 
 
+#Value Iteration Algorithm
 class ValueIteration:
 
     def __init__(self, env, theta=1e-6, gamma=0.95):
@@ -187,6 +158,7 @@ class ValueIteration:
 
         return V,pi,self.log
 
+
 #function for epsilon-greedy policy
 def epsilon_greedy(Q_state,epsilon):
     if random.uniform(0,1) < epsilon:
@@ -194,6 +166,7 @@ def epsilon_greedy(Q_state,epsilon):
     else:
         action = np.argmax(Q_state)
     return action
+
 
 #function for TD_0 algorithm
 def TD_0(env, pi, alpha, num_episodes):
@@ -218,15 +191,8 @@ def TD_0(env, pi, alpha, num_episodes):
             s = s_new
     return V
 
-# def sweep_plots(self, log, param_vals, algorithms):
-#     for i in range(len(algorithms)):
-#         for param in param_vals:
-#             plt.scatter(log['episodes'],log['G'],label=f'Alpha={alpha}')
-#             plt.title(f"Learning curve for different alpha: {algorithms[i]}")
-#             plt.legend()
-#         i += 1
 
-
+#SARSA Algorithm
 class SARSA:
     def __init__(self,env,alpha=0.5,epsilon=0.1,num_episodes = 5000,gamma=0.95):
         self.env = env
@@ -312,6 +278,7 @@ class SARSA:
         return Q, pi, self.log
 
 
+#Q-Learning Algorithm
 class QLearning:
 
     def __init__(self,env,alpha=0.5,epsilon=0.1,num_episodes = 5000,gamma=0.95):
@@ -398,55 +365,21 @@ class QLearning:
 def main():
     env = GridWorld(hard_version=False)
     env.reset()
+
     policy_iteration = PolicyIteration(env)
     V1, pi1, log1 = policy_iteration.policy_iteration(verbose=True, plots=True)
+
     value_iteration = ValueIteration(env)
     V2, pi2, log2 = value_iteration.value_iteration(verbose=True, plots=True)
+
     sarsa = SARSA(env)
     V3, pi3, log3 = sarsa.SARSA(verbose=True, plots=True)
+
     qlearning = QLearning(env)
     V4, pi4, log4 = qlearning.Q_Learning(verbose=True, plots=True)
-    # plt.show()   
-    # V_policyiter, pi_policyiter, log_policyiter = policy_iteration()
-    # V_valueiter, pi_valueiter, log_valueiter = value_iteration()
-    # Q_sarsa,pi_sarsa,log_sarsa = SARSA()
-    # Q_qlearning,pi_qlearning,log_qlearning = Q_Learning()
-    # log_list = [log_policyiter,log_valueiter,log_sarsa,log_qlearning]
-    # pi_list = [pi_policyiter,pi_valueiter,pi_sarsa,pi_qlearning]
+
     algorithms = {0:"Policy Iteration", 1:"Value Iteration", 2:"SARSA",3:"Q-Learning"}
-    # for i in range(len(algorithms)):
-    #     sp = env.reset()
-    #     log_list[i]['s'].append(sp)
-    #     done = False
-    #     while not done:
-    #         a = np.argmax(pi_list[i][sp])
-    #         (sp, rp, done) = env.step(a)
-    #         log_list[i]['t'].append(log_list[i]['t'][-1] + 1)
-    #         log_list[i]['s'].append(sp)
-    #         log_list[i]['a'].append(a)
-    #         log_list[i]['r'].append(rp)
-        
-    #     plt.figure()
-    #     plt.plot(log_list[i]['t'], log_list[i]['s'])
-    #     plt.plot(log_list[i]['t'][:-1], log_list[i]['a'])
-    #     plt.plot(log_list[i]['t'][:-1], log_list[i]['r'])
-    #     plt.title(f"State, Action and Reward for {algorithms[i]}")
-    #     plt.xlabel("Time")
-    #     plt.legend(['s', 'a', 'r'])
-
-    #     plt.figure()
-    #     if i < 2:
-    #         plt.plot(log_list[i]['iters'],log_list[i]['V'])
-    #         plt.xlabel("Number of Iterations")
-    #         plt.ylabel("Mean of Value Function")
-    #         plt.title(f"Learning curve for number of iterations: {algorithms[i]}")
-
-    #     else:
-    #         plt.plot(log_list[i]['episodes'],log_list[i]['G'])
-    #         plt.xlabel("Number of episodes")
-    #         plt.ylabel("Total return (G)")
-    #         plt.title(f"Learning curve for number of episodes: {algorithms[i]}")
-
+    #plotting alpha and epsilon sweep plots
     for i in range(2):
         if i == 0:
             alpha_vals = np.linspace(0,1,11)
@@ -454,20 +387,20 @@ def main():
             for alpha in alpha_vals:
                 sarsa_alpha = SARSA(env,alpha)
                 Q_alpha, pi_alpha, log_alpha = sarsa_alpha.SARSA(verbose=False, plots = False)
-                plt.scatter(log_alpha['episodes'],log_alpha['G'],label=f'Alpha={alpha}')
+                plt.plot(log_alpha['episodes'],log_alpha['G'],label=f'Alpha={alpha}')
             plt.title(f"Learning curve for different alpha: {algorithms[i+2]}")
-            plt.savefig('figures/gridworld/alpha_sweep_SARSA.png')
             plt.legend()
+            plt.savefig('figures/gridworld/alpha_sweep_SARSA.png')
 
             epsilon_vals = np.linspace(0,0.5,11)
             plt.figure()
             for epsilon in epsilon_vals:
                 sarsa_epsilon = SARSA(env, epsilon = epsilon)
                 Q_eps, pi_eps, log_eps = sarsa_epsilon.SARSA(verbose=False, plots = False)
-                plt.scatter(log_eps['episodes'],log_eps['G'],label=f'Epsilon={epsilon}')
+                plt.plot(log_eps['episodes'],log_eps['G'],label=f'Epsilon={epsilon}')
             plt.title(f"Learning curve for different epsilon: {algorithms[i+2]}")
-            plt.savefig('figures/gridworld/epsilon_sweep_SARSA.png')
             plt.legend()
+            plt.savefig('figures/gridworld/epsilon_sweep_SARSA.png')
         
         else:
             alpha_vals = np.linspace(0,1,11)
@@ -475,22 +408,22 @@ def main():
             for alpha in alpha_vals:
                 qlearning_alpha = QLearning(env, alpha=alpha)
                 Q_alpha, pi_alpha, log_alpha = qlearning_alpha.Q_Learning(verbose=False, plots = False)
-                plt.scatter(log_alpha['episodes'],log_alpha['G'],label=f'Alpha={alpha}')
+                plt.plot(log_alpha['episodes'],log_alpha['G'],label=f'Alpha={alpha}')
             plt.title(f"Learning curve for different alpha: {algorithms[i+2]}")
-            plt.savefig('figures/gridworld/alpha_sweep_qlearning.png')
             plt.legend()
+            plt.savefig('figures/gridworld/alpha_sweep_qlearning.png')
 
             epsilon_vals = np.linspace(0,0.5,11)
             plt.figure()
             for epsilon in epsilon_vals:
                 qlearning_epsilon = QLearning(env, epsilon=epsilon)
                 Q_eps, pi_eps, log_eps = qlearning_epsilon.Q_Learning(verbose=False, plots=False)
-                plt.scatter(log_eps['episodes'],log_eps['G'],label=f'Epsilon={epsilon}')
+                plt.plot(log_eps['episodes'],log_eps['G'],label=f'Epsilon={epsilon}')
             plt.title(f"Learning curve for different epsilon: {algorithms[i+2]}")
-            plt.savefig('figures/gridworld/epsilon_sweep_qlearning.png')
             plt.legend()
+            plt.savefig('figures/gridworld/epsilon_sweep_qlearning.png')
+            
 
-    # plt.show()
 
 if __name__ == '__main__':
     main()
