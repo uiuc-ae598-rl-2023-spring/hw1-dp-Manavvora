@@ -218,19 +218,8 @@ class QLearning:
     }
         
     def Q_Learning(self, verbose=True, plots=True):
-        gamma = 0.95
         Q = np.zeros((self.env.num_states,self.env.num_actions))
         pi = np.ones((self.env.num_states,self.env.num_actions))/self.env.num_actions
-        log = {
-            't': [0],
-            's': [],
-            'a': [],
-            'r': [],
-            'G': [],
-            'episodes': [],
-            'theta': [],
-            'thetadot': []
-        }
         for episode in range(self.num_episodes):
             s = self.env.reset()
             done = False
@@ -240,12 +229,12 @@ class QLearning:
                 a = epsilon_greedy(Q[s],self.epsilon)
                 (s_new,r,done) = self.env.step(a)
                 iters += 1
-                G += r*gamma**(iters-1)
-                Q[s,a] += self.alpha*(r + gamma*np.max(Q[s_new]) - Q[s,a])
+                G += r*self.gamma**(iters-1)
+                Q[s,a] += self.alpha*(r + self.gamma*np.max(Q[s_new]) - Q[s,a])
                 s = s_new
             pi[s] = np.eye(self.env.num_actions)[np.argmax(Q[s])]
-            log['G'].append(G)
-            log['episodes'].append(episode)
+            self.log['G'].append(G)
+            self.log['episodes'].append(episode)
         V_approx = TD_0_QLearning(self.env, pi, self.alpha, self.num_episodes)
 
         if verbose == True:
@@ -292,7 +281,6 @@ class QLearning:
             plt.legend(['theta','theta_dot','Theta = pi', 'Theta = -pi'])
             plt.savefig('figures/pendulum/theta_thetadot_qlearning.png')
 
-            print(log['G'],log['episodes'])
             plt.figure()
             plt.plot(self.log['episodes'],self.log['G'])
             plt.xlabel("Number of Episodes")
@@ -307,13 +295,6 @@ class QLearning:
             plt.title("State-Value Function Learned by TD(0): Q-Learning")
             plt.savefig('figures/pendulum/state_value_qlearning.png')
 
-            # plt.figure()
-            # plt.plot(log_TD_0['t'],log_TD_0['theta'])
-            # plt.plot(log_TD_0['t'],log_TD_0['thetadot'])
-            # plt.title("Theta, Theta_dot vs Time for TD(0) : Q-Learning")
-            # plt.xlabel("Time")
-            # plt.legend(['theta','theta_dot'])
-            # plt.savefig('figures/pendulum/theta_thetadot_qlearning_TD_0.png')
         return Q, pi, self.log
 
 
@@ -330,7 +311,7 @@ def main():
     algorithms = {0:"Policy Iteration", 1:"Value Iteration", 2:"SARSA",3:"Q-Learning"}
     for i in range(2):
         if i == 0:
-            alpha_vals = np.linspace(0,1,11)
+            alpha_vals = np.linspace(0,1,11) #values of alpha
             plt.figure()
             for alpha in alpha_vals:
                 sarsa_alpha = SARSA(env,alpha=alpha)
@@ -340,7 +321,7 @@ def main():
             plt.legend()
             plt.savefig('figures/pendulum/alpha_sweep_SARSA.png')
 
-            epsilon_vals = np.linspace(0,1,11)
+            epsilon_vals = np.linspace(0,1,11) #values of epsilon
             plt.figure()
             for epsilon in epsilon_vals:
                 sarsa_epsilon = SARSA(env, epsilon = epsilon)
@@ -351,17 +332,19 @@ def main():
             plt.savefig('figures/pendulum/epsilon_sweep_SARSA.png')
         
         else:
-            alpha_vals = np.linspace(0,1,11)
+            alpha_vals = np.linspace(0.1,1,3) #values of alpha
+            print("Here")
             plt.figure()
             for alpha in alpha_vals:
                 qlearning_alpha = QLearning(env, alpha=alpha)
                 Q_alpha, pi_alpha, log_alpha = qlearning_alpha.Q_Learning(verbose=False, plots = False)
+                print(f"Plotting for {alpha}")
                 plt.plot(log_alpha['episodes'],log_alpha['G'],label=f'Alpha={alpha}')
-            plt.title(f"Learning curve for different alpha: {algorithms[i+2]}")
+            plt.title(f"Learning curve for different alpha: {algorithms[3]}")
             plt.legend()
-            plt.savefig('figures/pendulum/epsilon_sweep_qlearning.png')
+            plt.savefig('figures/pendulum/alpha_sweep_qlearning.png')
 
-            epsilon_vals = np.linspace(0,0.5,11)
+            epsilon_vals = np.linspace(0,0.5,11) #values of epsilon
             plt.figure()
             for epsilon in epsilon_vals:
                 qlearning_epsilon = QLearning(env, epsilon=epsilon)
